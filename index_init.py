@@ -1,5 +1,5 @@
 from pinecone import Pinecone
-pc = Pinecone(api_key="pcsk_78zW9c_JTy8hG5rCwEqsRTNZGiFzwykKa8gD6pgVPTq1d8vSjso2BU7Xj7hQ7s6pkDzbDC")
+pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 
 index_name = "avenchatbot"
 
