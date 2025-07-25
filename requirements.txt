@@ -1,0 +1,6 @@
+flask
+dotenv
+replicate
+pinecone
+exa_py
+openai
