@@ -2,7 +2,6 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 import replicate
-replicate.Client(REPLICATE_API_TOKEN='r8_TJZ9lSq1vwNRdztlJhCSTrr8pWDEsik0AJMGQ')
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
 
 import replicate
