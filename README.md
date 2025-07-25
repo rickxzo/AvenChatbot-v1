@@ -41,3 +41,5 @@ How to use?
 - run flask app.
 
 Refer to sample usage video of source code.
+
+This project was made as a part of Headstarter Buildcore Beta fellowship program.
