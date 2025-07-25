@@ -21,23 +21,25 @@ Database -> Pinecone (for RAG)
 Architecture:
 
 T2T => user prompt -> Index Searcher (Searches index for relevant info IF needed) -> Web Searcher (Searches web for relevant info IF needed) -> Assistant (Provides final output based on prompts & information retrieved by searching layers).
+
 A2T => user audio -> STTModel -> same workflow as T2T.
+
 A2A => user audio -> STTModel -> T2T workflow -> TTSModel -> Audio Player.
 
 Future improvement scope -
--> Streaming Text Responses
--> Realtime Model integration
--> Tool context model architecture
--> Response time-consumption optimization
+- Streaming Text Responses
+- Realtime Model integration
+- Tool context model architecture
+- Response time-consumption optimization
 
 How to use?
--> Install dependencies
--> Get API keys from Replicate, Exa.AI, Pinecone
--> Set env vars with API keys as values.
--> run index_init.py to init a Pinecone IndexDB, note the host.
--> edit index_modify.py with Pinecone host & desired web crawl target url.
--> run kokoro.py to init voice call introductory voice, note the url.
--> edit /static/chatbot.js Chatbot component method start_call() line 3 url.
--> run flask app.
+- Install dependencies
+- Get API keys from Replicate, Exa.AI, Pinecone
+- Set env vars with API keys as values.
+- run index_init.py to init a Pinecone IndexDB, note the host.
+- edit index_modify.py with Pinecone host & desired web crawl target url.
+- run kokoro.py to init voice call introductory voice, note the url.
+- edit /static/chatbot.js Chatbot component method start_call() line 3 url.
+- run flask app.
 
 Refer to sample usage video of source code.
