@@ -1,8 +1,11 @@
+from dotenv import load_dotenv
+load_dotenv()
+import os
 from exa_py import Exa
-exa = Exa(api_key = "1bf7c651-3c14-4128-a425-6863c1fd6d5a")
+exa = Exa(api_key = os.getenv("EXA_API_KEY")
 
 from pinecone import Pinecone
-pc = Pinecone(api_key="pcsk_78zW9c_JTy8hG5rCwEqsRTNZGiFzwykKa8gD6pgVPTq1d8vSjso2BU7Xj7hQ7s6pkDzbDC")
+pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 index = pc.Index(host="avenchatbot-rz0q9xs.svc.aped-4627-b74a.pinecone.io")
 
 result = str(exa.get_contents(
