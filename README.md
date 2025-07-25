@@ -14,17 +14,15 @@ This chatbot uses
 - Prompt Engineering for recall
 
 Technical Stack:
-Frontend -> Vue.js, TailwindCSS
-Backend -> Flask
-Database -> Pinecone (for RAG)
+- Frontend -> Vue.js, TailwindCSS
+- Backend -> Flask
+- Database -> Pinecone (for RAG)
 
 Architecture:
 
-T2T => user prompt -> Index Searcher (Searches index for relevant info IF needed) -> Web Searcher (Searches web for relevant info IF needed) -> Assistant (Provides final output based on prompts & information retrieved by searching layers).
-
-A2T => user audio -> STTModel -> same workflow as T2T.
-
-A2A => user audio -> STTModel -> T2T workflow -> TTSModel -> Audio Player.
+- T2T => user prompt -> Index Searcher (Searches index for relevant info IF needed) -> Web Searcher (Searches web for relevant info IF needed) -> Assistant (Provides final output based on prompts & information retrieved by searching layers).
+- A2T => user audio -> STTModel -> same workflow as T2T.
+- A2A => user audio -> STTModel -> T2T workflow -> TTSModel -> Audio Player.
 
 Future improvement scope -
 - Streaming Text Responses
