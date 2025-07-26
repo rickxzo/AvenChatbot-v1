@@ -38,7 +38,7 @@ How to use?
 - edit index_modify.py with Pinecone host & desired web crawl target url.
 - run kokoro.py to init voice call introductory voice, note the url.
 - edit /static/chatbot.js Chatbot component method start_call() line 3 url.
-- run flask app.
+- run flask app.  // ALWAYS app.py. ALL app(vn).py are older code with lesser optimization.
 
 Refer to sample usage video of source code.
 
