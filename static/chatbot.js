@@ -28,7 +28,7 @@ const Chatbot = {
     startCall() {
       this.callStarted = true;
       this.callDuration = 0;
-      const audio = new Audio("https://replicate.delivery/czjl/N1ZKqAHVw075LxG1TYCsrsgB7vxX2BFDs4nS7k9RMVC2OFRF/output.wav");
+      const audio = new Audio("https://replicate.delivery/czjl/y6iMHTwRaxIkHlRIN6ajsg8et47RHfsMN5RCnRt6RxIQm3EVA/output.wav");
       audio.play();
       this.callTimer = setInterval(() => {
         this.callDuration += 1;
@@ -61,19 +61,47 @@ const Chatbot = {
       this.userInput = '';
 
       this.rawMessages.push({ from: 'bot', text: 'thinking...', temp: true });
-      
-      fetch('http://127.0.0.1:5000/respond', {
+
+      fetch('http://127.0.0.1:5000/set-msg', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ messages: this.rawMessages.filter(msg => !msg.temp) })  // send data as JSON
+        body: JSON.stringify({ messages: this.rawMessages.filter(msg => !msg.temp) })
       })
-      .then(res => res.json())
-      .then(data => {
-        this.rawMessages = this.rawMessages.filter(msg => !msg.temp);
-        this.rawMessages.push({ from: 'bot', text: data.message });
-        if (this.callStarted){
+      .then(res=>res.json())
+      const len = this.rawMessages.length;
+      console.log(len);
+      const response = new EventSource("/respond2")
+      const vm = this;
+      response.onmessage = function(event){
+        if (event.data.length>1){
+          if (event.data == "[DONE]"){
+            console.log("DONE TRIG");
+            response.close();
+            return;
+          }
+          else{
+            vm.rawMessages.pop();
+            vm.rawMessages.push({
+              from: 'bot',
+              text: event.data,
+              temp: true
+            })
+          }
+        }
+
+        else if (len > 0 && vm.rawMessages[len - 1].temp) {
+          console.log("REM TEMP");
+          vm.rawMessages.pop();
+          vm.rawMessages.push({ from: 'bot', text: event.data });
+        }
+        
+        else{
+          vm.rawMessages[vm.rawMessages.length - 1].text += event.data;
+        }
+      }     
+      if (this.callStarted){
           fetch('http://127.0.0.1:5000/kokorofy',{
             method: 'POST',
             headers: {
@@ -84,17 +112,8 @@ const Chatbot = {
           .then(res=>res.json())
           .then(data => {
             this.speak(data.url);
-          })
-        }
-      })
-      .catch(err => {
-        this.rawMessages = this.rawMessages.filter(msg => !msg.temp);
-
-        this.rawMessages.push({ from: 'bot', text: 'Oops! Something went wrong.' });
-        console.error("Error:", err);
-      });
-
-
+          }) 
+      }
     },
 
     toggleRecording() {
