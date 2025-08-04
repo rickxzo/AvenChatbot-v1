@@ -1,10 +1,11 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, Response
 from dotenv import load_dotenv
 load_dotenv()
 import json
 import os
 import tempfile
 import requests
+import time
 
 from typing import TypedDict, List, Dict, Any, Optional
 from langgraph.graph import StateGraph, START, END
@@ -48,25 +49,19 @@ def vector_search(prompt):
     ]
     return vknowledge
 
-def web_search(prompt):
-    taskStub = exa.research.create_task(
-    instructions = prompt,
-    model = "exa-research",
-    output_infer_schema = True
-    )
-    task = exa.research.poll_task(taskStub.id)
-    completion = client.chat.completions.create(
-        model = "exa-research",
-        messages = [
-            {"role": "user", "content": prompt}
-        ],
-        stream = True,
-    )
-    x = ""
-    for chunk in completion:
-        if chunk.choices and chunk.choices[0].delta.content:
-            x+=str(chunk.choices[0].delta.content)
-    return x
+def web_search(query):
+    result = str(exa.search_and_contents(
+        query,
+        type = "auto",
+        num_results = 5,
+        summary = True
+    )).split("\n")
+    summ = []
+    for i in result:
+        if "Summary:" in i:
+            summ.append(i[9:])
+    summary = Summarizer.gen(" ".join(summ))
+    return summary
 
 class TextModel:
     def __init__(self, model_name, system_prompt):
@@ -78,7 +73,7 @@ class TextModel:
             "prompt": prompt,
             "system_prompt": self.system_prompt,
         }
-        x = ""
+        x = ''
         for event in replicate.stream(
             self.model_name,
             input=input
@@ -87,6 +82,10 @@ class TextModel:
         x = x.replace('\\', '\\\\')
         return x
 
+Summarizer = TextModel(
+    "openai/o4-mini",
+    "Given an amount of text, compile it into a smaller text while not losing content."
+)
 
 Assistant = TextModel(
     "openai/o4-mini",
@@ -148,6 +147,8 @@ def choose(state: ProcessState):
     print("Choose ", state)
     conversation = state["conversation"]
     knowledge = state["knowledge"]
+    response = state["response"]
+    reply = state["reply"]
 
     prompt = f"""
     ### Conversation
@@ -161,15 +162,23 @@ def choose(state: ProcessState):
     """
     response = Assistant.gen(prompt)
     return {
-        "response": response
+        "response": response,
+        "knowledge": knowledge,
+        "reply": reply,
+        "conversation": conversation
     }
 
 def route(state: ProcessState) -> str:
     response = state["response"]
+    print(response)
     response = json.loads(response)
     return response["type"]
 
 def go_web(state: ProcessState):
+    conversation = state["conversation"]
+    knowledge = state["knowledge"]
+    response = state["response"]
+    reply = state["reply"]
     print("GOWEB", state)
     response = state["response"]
     response = json.loads(response)
@@ -180,10 +189,17 @@ def go_web(state: ProcessState):
     {info}
     """
     return {
+        "response": response,
+        "reply": reply,
+        "conversation": conversation,
         "knowledge": knowledge
     }
 
 def go_vector(state: ProcessState):
+    conversation = state["conversation"]
+    knowledge = state["knowledge"]
+    response = state["response"]
+    reply = state["reply"]
     print("GOVECTOR", state)
     response = json.loads(state["response"])
     info = vector_search(response["content"])
@@ -193,14 +209,24 @@ def go_vector(state: ProcessState):
     {info}
     """
     return {
+        "response": response,
+        "reply": reply,
+        "conversation": conversation,
         "knowledge": knowledge
     }
 
 def give_reply(state: ProcessState):
+    conversation = state["conversation"]
+    knowledge = state["knowledge"]
+    response = state["response"]
+    reply = state["reply"]
     print("SENDREPLY", state)
     response = json.loads(state["response"])
     reply = response["content"]
     return {
+        "response": response,
+        "conversation": conversation,
+        "knowledge": knowledge,
         "reply": reply
     }
 
@@ -229,33 +255,73 @@ compiled_graph = chat_graph.compile()
 
 app = Flask(__name__, template_folder=".", static_folder="static")
 app.secret_key = "aven01"
-
+cstate = ""
 
 @app.route("/", methods=["GET","POST"])
 def home():
     return render_template("chatbot.html")
 
 
-@app.route("/respond", methods=["GET", "POST"])
-def respond():
-    data = request.get_json()
-    messages = data['messages']
-    conversation = "\n".join(f"{msg['from']}: {msg['text']}" for msg in messages)
+    
+@app.route("/respond2", methods=["GET","POST"])
+def respond2():
+    global cstate
+    global convo
+    conversation = convo
     print(conversation)
     
-    final_state = compiled_graph.invoke({
-        "conversation": conversation,
-        "knowledge": "",
-        "response": ""
-    })
-    k = final_state['reply'].replace("\\n","<br>")
-    print(k)
-    return jsonify({
-        "success": True,
-        "message": k
-    })
-    
+    #final_state = compiled_graph.invoke({
+    #    "conversation": conversation,
+    #    "knowledge": "",
+    #    "response": ""
+    #})
+    #k = final_state['reply'].replace("\\n","<br>")
+    #lk = len(k)
+    def event_stream():
+        state = {
+            "conversation": convo,
+            "knowledge": "K",
+            "response": "R",
+            "reply": "R"
+        }
+        yield "data: thinking...\n\n"
+        state = choose(state)  
+        print("CHOOSE STATE:", state)
+        route_value = route(state)
+        while route_value != "answer":
+            if route_value == "web":
+                yield "data: searching web...\n\n"
+                state = go_web(state)
+            elif route_value == "vector":
+                yield "data: gathering knowledge...\n\n"
+                state = go_vector(state)
+            print("post tooling: ",state)
+            # Back to choose after tool call
+            yield "data: thinking...\n\n"
+            state = choose(state)
+            route_value = route(state)
 
+        yield "data: answering...\n\n"
+        state = give_reply(state)
+        k = state['reply'].replace("\\n", "<br>")
+        i = 0
+        lk = len(k)
+        while i<lk:
+            yield f"data: {k[i]}\n\n"
+            time.sleep(0.02)
+            i+=1
+        yield f"data: [DONE]\n\n"
+    return Response(event_stream(), mimetype="text/event-stream")
+
+convo = ""
+@app.route("/set-msg", methods=["GET","POST"])
+def set_msg():
+    global convo
+    data = request.get_json()
+    messages = data['messages']
+    convo = "\n".join(f"{msg['from']}: {msg['text']}" for msg in messages)
+    print("SET MSG: ",convo)
+    return jsonify({'success': True})
 
 @app.route("/voice-to-text", methods=["GET","POST"])
 def voice_to_text():
@@ -301,7 +367,5 @@ def kokorofy():
     return jsonify({"url": str(output)})
 
         
-
-
 if __name__ == "__main__":
     app.run(debug=True)
