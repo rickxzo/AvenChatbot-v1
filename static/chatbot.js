@@ -62,7 +62,7 @@ const Chatbot = {
 
       this.rawMessages.push({ from: 'bot', text: 'thinking...', temp: true });
 
-      fetch('http://127.0.0.1:5000/set-msg', {
+      fetch('http://127.0.0.1:10000/set-msg', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -320,4 +320,5 @@ const Chatbot = {
 
 const app = Vue.createApp({});
 app.component("chatbot",Chatbot);
+
 app.mount('#app');
