@@ -261,7 +261,7 @@ def home():
     return render_template("chatbot.html")
 
 
-    
+convo = ""
 @app.route("/respond2", methods=["GET","POST"])
 def respond2():
     global cstate
@@ -312,12 +312,13 @@ def respond2():
         yield f"data: [DONE]\n\n"
     return Response(event_stream(), mimetype="text/event-stream")
 
-convo = ""
 @app.route("/set-msg", methods=["GET","POST"])
 def set_msg():
+    print("SET MSG INVOKED")
     global convo
     data = request.get_json()
     messages = data['messages']
+    print("RECEIVED MESSAGES: ", messages)
     convo = "\n".join(f"{msg['from']}: {msg['text']}" for msg in messages)
     print("SET MSG: ",convo)
     return jsonify({'success': True})
@@ -369,3 +370,4 @@ def kokorofy():
 if __name__ == "__main__":
 
     app.run(debug=True)
+
