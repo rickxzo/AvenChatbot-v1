@@ -1,6 +1,9 @@
 flask
 dotenv
-replicate
-pinecone
-exa_py
+requests
+gunicorn
+langgraph
+exa-py
 openai
+pinecone
+replicate
