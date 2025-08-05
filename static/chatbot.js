@@ -248,8 +248,7 @@ const Chatbot = {
               lineHeight: '1.4',
               background: msg.from === 'user' ? '#e8f0fe' : '#f0f0f0',
               color: '#000'
-            }">
-              {{ msg.text }}
+            }" v-html="msg.text">
             </div>
           </div>
         </div>
