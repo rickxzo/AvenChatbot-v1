@@ -26,7 +26,6 @@ pc = Pinecone(api_key=pine_api)
 index = pc.Index(host="avenchatbot-rz0q9xs.svc.aped-4627-b74a.pinecone.io")
 
 import replicate
-replicate.Client(REPLICATE_API_KEY='r8_TJZ9lSq1vwNRdztlJhCSTrr8pWDEsik0AJMGQ')
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
 def vector_search(prompt):
     search = index.search(
@@ -368,4 +367,5 @@ def kokorofy():
 
         
 if __name__ == "__main__":
+
     app.run(debug=True)
