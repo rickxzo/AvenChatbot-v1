@@ -1,6 +1,5 @@
 # AvenChatbot-v1
 A chatbot made to answer Aven's user queries.
-Try it on Render! - https://avenchatbot-v1.onrender.com
 
 This chatbot can
 - Provide information via Web Search or IndexDB Search.
