@@ -178,7 +178,7 @@ const Chatbot = {
               const formData = new FormData();
               formData.append('audio', audioBlob, 'recording.webm');
               
-              fetch('http://127.0.0.1:5000/voice-to-text', {
+              fetch('/voice-to-text', {
                 method: 'POST',
                 body: formData
               })
@@ -322,4 +322,5 @@ const app = Vue.createApp({});
 app.component("chatbot",Chatbot);
 
 app.mount('#app');
+
 
