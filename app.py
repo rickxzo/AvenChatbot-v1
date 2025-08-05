@@ -264,6 +264,7 @@ def home():
 convo = ""
 @app.route("/respond2", methods=["GET","POST"])
 def respond2():
+    print("RESPOND2 INVOKED")
     global cstate
     global convo
     conversation = convo
@@ -370,4 +371,5 @@ def kokorofy():
 if __name__ == "__main__":
 
     app.run(debug=True)
+
 
