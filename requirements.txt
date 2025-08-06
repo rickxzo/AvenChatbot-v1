@@ -4,3 +4,5 @@ replicate
 pinecone
 exa_py
 openai
+langgraph
+mcp[cli]
